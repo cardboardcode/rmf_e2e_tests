@@ -21,7 +21,14 @@ ros2 run rmf_demos_tasks dispatch_go_to_place -p restaurant -F deliveryRobot -R 
 sleep 10
 
 # Trigger the emergency signal. deliveryBot_1 should find a free spot to park which is [deliverybot_charger].
-ros2 topic pub /emergency_signal rmf_fleet_msgs/msg/EmergencySignal "{\"is_emergency\": true, \"fleet_names\": []}" --once --qos-reliability reliable --qos-durability transient_local
+case "$ROS_DISTRO" in
+    rolling|lyrical|kilted)
+        ros2 topic pub /emergency_signal rmf_fleet_msgs/msg/EmergencySignal "{\"is_emergency\": true, \"fleet_names\": []}" --once --qos-reliability reliable --qos-durability transient_local
+        ;;
+    *)
+        ros2 topic pub /fire_alarm_trigger std_msgs/msg/Bool "{data: true}" --once --qos-reliability reliable --qos-durability transient_local
+        ;;
+esac
 sleep 30
 
 # Check that deliveryBot_1 is at [deliverybot_charger]
@@ -32,8 +39,15 @@ if [ $ret -ne 0 ]; then
         exit -1
 fi
 
-# Switch off the emergency signal. deliveryBot_1 should return to [deliverybot_charger].
-ros2 topic pub /emergency_signal rmf_fleet_msgs/msg/EmergencySignal "{\"is_emergency\": false, \"fleet_names\": []}" --once --qos-reliability reliable --qos-durability transient_local
+# Switch off the emergency signal. deliveryBot_1 should continue its task to reach [restaurant].
+case "$ROS_DISTRO" in
+    rolling|lyrical|kilted)
+        ros2 topic pub /emergency_signal rmf_fleet_msgs/msg/EmergencySignal "{\"is_emergency\": false, \"fleet_names\": []}" --once --qos-reliability reliable --qos-durability transient_local
+        ;;
+    *)
+        ros2 topic pub /fire_alarm_trigger std_msgs/msg/Bool "{data: false}" --once --qos-reliability reliable --qos-durability transient_local
+        ;;
+esac
 
 ros2 run rmf_demos_tasks wait_for_task_complete -F deliveryRobot -R deliveryBot_1 --timeout 500
 ret=$?
