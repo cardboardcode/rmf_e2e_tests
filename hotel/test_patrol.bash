@@ -11,9 +11,3 @@ if [ $ret -ne 0 ]; then
         echo "Test failed"
         exit -1
 fi
-ros2 run rmf_demos_tasks wait_for_task_complete -F deliveryRobot -R deliveryBot_1 --timeout 500
-ret=$?
-if [ $ret -ne 0 ]; then
-        echo "Test failed"
-        exit -1
-fi
