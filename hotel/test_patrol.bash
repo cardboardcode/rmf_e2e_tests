@@ -16,9 +16,8 @@ if [ $ret -ne 0 ]; then
         exit -1
 fi
 
-# Send overlapping patrol tasks to both robots. They should be able to sort out and complete the tasks successfully.
-ros2 run rmf_demos_tasks dispatch_patrol -F tinyRobot -R tinyBot_1 -p L2_room1 kitchen -n 2 --use_sim_time
-ros2 run rmf_demos_tasks dispatch_patrol -F deliveryRobot -R deliveryBot_1 -p kitchen L2_room1 -n 2 --use_sim_time
+# Start a multi-waypoint patrol task for tinyBot_1 to [lobby], then to [shop]
+ros2 run rmf_demos_tasks dispatch_patrol -F tinyRobot -R tinyBot_1 -p lobby shop -n 2 --use_sim_time
 
 ros2 run rmf_demos_tasks wait_for_task_complete -F tinyRobot -R tinyBot_1 --timeout 500
 ret=$?
