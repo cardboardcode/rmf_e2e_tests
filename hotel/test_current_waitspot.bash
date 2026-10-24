@@ -16,15 +16,7 @@ if [ $ret -ne 0 ]; then
 fi
 
 # Check that deliveryBot_1 is at [kitchen]
-loc=$(ros2 run rmf_demos_tasks get_robot_location -F deliveryRobot -R deliveryBot_1 --timeout 5)
-echo "$loc" | grep -q 'kitchen'
-ret=$?
-if [ $ret -ne 0 ]; then
-        echo "Test failed"
-        exit -1
-fi
-
-ros2 run rmf_demos_tasks wait_for_task_complete -F deliveryRobot -R deliveryBot_1 --timeout 500
+ros2 run rmf_demos_tasks get_robot_location -F deliveryRobot -R deliveryBot_1 -B kitchen --timeout 500
 ret=$?
 if [ $ret -ne 0 ]; then
         echo "Test failed"
