@@ -20,20 +20,40 @@ Below is a tabular listing of test cases, captured in terms of individual `.bash
 | HOTEL-010 | `hotel/test_patrol.bash` | Patrol task (multi-waypoint) | Issues a multi-waypoint patrol for `tinyBot_1` across `lobby` and `shop` for 2 rounds. | Patrol loop completes all 2 rounds within the 500 s timeout. |
 | OFFICE-001 | `office/test_reservation.bash` | Parking reservations | With `use_parking_reservations: True`, occupies `pantry` with `tinyRobot2`, dispatches `tinyRobot1` to the same occupied `pantry`, then frees `pantry` by moving `tinyRobot2` to `lounge`. | RMF diverts `tinyRobot1` to the nearest parking spot `tinyRobot2_charger`; once `pantry` is freed, `tinyRobot1` moves to `pantry`; final assertions: `tinyRobot1` at `pantry` and `tinyRobot2` at `lounge` all pass. |
 
-## **Test Order & Gating (basic → advanced)**
+## **Test Hierarchy**
 
-All 11 tests are ordered from the most fundamental capability (single-robot navigation) to the most complex (multi-modal, multi-floor interaction). Each test gates the ones that depend on its capability.
+All tests are ordered from the most fundamental capability (single-robot navigation) to the most complex (multi-modal, multi-floor interaction). Each test gates the ones that depend on its capability.
 
-| Test ID | Test Script | Capability Tier | What It Verifies |
-|---|-------------|-----------------|------------------|
-| HOTEL-001 | `hotel/test_basic.bash` | **Tier 1 — Core navigation** | RMF can plan and execute a single-robot, single-waypoint task (`tinyBot_1` → `lobby`). The foundation every other test builds on. |
-| HOTEL-010 | `hotel/test_patrol.bash` | **Tier 1 — Core navigation** | Multi-waypoint sequential execution (`tinyBot_1` patrols `lobby` → `shop`, 2 rounds). Fails if basic path chaining is broken. |
-| HOTEL-002 | `hotel/test_cancellation.bash` | **Tier 2 — Traffic management** | Route conflict resolution across two robots plus task-cancellation semantics (`deliveryBot_1` cancelled mid-task, resumes follow-up at `kitchen`). |
-| HOTEL-004 | `hotel/test_current_waitspot.bash` | **Tier 2 — Traffic management** | Wait-spot allocation under contention: blocked robot holds at the allocated wait spot (`kitchen`) while the other completes. |
-| HOTEL-003 | `hotel/test_clean.bash` | **Tier 3 — Task-type fidelity** | A specialised non-navigation task (`cleanerBotA_2` cleans `clean_waiting_area`) completes with correct task-type handling. |
-| HOTEL-005 | `hotel/test_delivery.bash` | **Tier 4 — Task workflow** | Full pick-and-deliver workflow: dispenser (`hotel_kitchen_dispenser`) → ingestor (`guest_receiver`) results integration across two stops for `deliveryBot_1`. |
-| HOTEL-006 | `hotel/test_door_interact.bash` | **Tier 5 — Environment interaction** | Robot navigation across physically modelled doors, forced to orchestrate safe open/close along two concurrent routes. |
-| HOTEL-007 | `hotel/test_emergency_pullover.bash` | **Tier 5 — Environment interaction (safety)** | Safety-critical interrupt: emergency alarm forces `deliveryBot_1` to park at `deliverybot_charger`, alarm clears, robot resumes and completes its original task. |
-| HOTEL-009 | `hotel/test_lift_interact.bash` | **Tier 5 — Environment interaction** | Lift interaction protocol: `deliveryBot_1` traverses multiple floors to `L3_room1`. |
-| OFFICE-001 | `office/test_reservation.bash` | **Tier 5 — Fleet policy (parking reservations)** | RMF parking-reservation policy in the `office` simulation: request for an occupied `pantry` diverts `tinyRobot1` to the nearest parking spot (`tinyRobot2_charger`), then to `pantry` once freed; `tinyRobot2` ends at `lounge`. |
-| HOTEL-008 | `hotel/test_lift_door_interact.bash` | **Tier 6 — Multi-modal interaction** | The most complex sequence: sequential lift engagement followed by door modules to reach `L3_master_suite`. |
+```mermaid
+flowchart TD
+    subgraph T1["Tier 1 — Core navigation"]
+        H1["HOTEL-001<br/>test_basic.bash"]
+        H10["HOTEL-010<br/>test_patrol.bash"]
+    end
+
+    subgraph T2["Tier 2 — Traffic management"]
+        H2["HOTEL-002<br/>test_cancellation.bash"]
+        H4["HOTEL-004<br/>test_current_waitspot.bash"]
+    end
+
+    subgraph T3["Tier 3 — Task-type fidelity"]
+        H3["HOTEL-003<br/>test_clean.bash"]
+    end
+
+    subgraph T4["Tier 4 — Task workflow"]
+        H5["HOTEL-005<br/>test_delivery.bash"]
+    end
+
+    subgraph T5["Tier 5 — Environment interaction & fleet policy"]
+        H6["HOTEL-006<br/>test_door_interact.bash"]
+        H7["HOTEL-007<br/>test_emergency_pullover.bash"]
+        H9["HOTEL-009<br/>test_lift_interact.bash"]
+        O1["OFFICE-001<br/>test_reservation.bash"]
+    end
+
+    subgraph T6["Tier 6 — Multi-modal interaction"]
+        H8["HOTEL-008<br/>test_lift_door_interact.bash"]
+    end
+
+    T1 --> T2 --> T3 --> T4 --> T5 --> T6
+```
