@@ -57,3 +57,90 @@ flowchart TD
 
     T1 --> T2 --> T3 --> T4 --> T5 --> T6
 ```
+
+## **Instructions** :blue_book:
+
+If you would like to run the above tests yourself, please follow the instructions below to quickly get started:
+
+> [!NOTE]
+> For demonstration purposes, the docker image below will be used.
+> For actual testing, replace `ghcr.io/open-rmf/rmf/rmf_demos:lyrical-rmf-latest` with the Open-RMF docker image with the custom patch you wish to evaluate.
+
+```bash
+docker pull ghcr.io/open-rmf/rmf/rmf_demos:lyrical-rmf-latest
+```
+
+```bash
+git clone https://github.com/cardboardcode/rmf_e2e_tests.git && cd rmf_e2e_tests
+```
+
+### **Office**
+
+```bash
+docker run -it --rm \
+    --name rmf_demos_c \
+    -e RCUTILS_COLORIZED_OUTPUT=1 \
+    -v ./office:/rmf_demos_ws/office \
+    -v ./office/configs/tinyRobot_config.yaml:/rmf_demos_ws/install/rmf_demos/share/rmf_demos/config/office/tinyRobot_config.yaml \
+ghcr.io/open-rmf/rmf/rmf_demos:lyrical-rmf-latest \
+    bash -c "source /rmf_demos_ws/install/setup.bash && ros2 launch rmf_demos_gz office.launch.xml headless:=true"
+```
+
+> [!NOTE]
+> For office simulation, note that `tinyRobot_config.yaml` is overwritten at load time to allow `finishing_request` to be set to `nothing`. This allows easier and faster verification of the reservation system.
+
+
+```bash
+docker exec -it rmf_demos_c bash -c "source /rmf_demos_ws/install/setup.bash && bash /rmf_demos_ws/office/test_reservation.bash"
+```
+
+#### **Verify** :white_check_mark:
+
+```bash
+[INFO] [1793176643.417945312] [task_requester]: Using Sim Time
+[INFO] [1793176643.421859544] [task_requester]: Using 'robot_task_request'
+Json msg payload: 
+{
+  "type": "robot_task_request",
+  "robot": "tinyRobot2",
+  "fleet": "tinyRobot",
+ 
+...
+
+Got response: 
+lounge
+elapsed time: 26.541723251342773
+```
+
+### **Hotel**
+
+```bash
+docker run -it --rm \
+    --name rmf_demos_c \
+    -e RCUTILS_COLORIZED_OUTPUT=1 \
+    -v ./hotel:/rmf_demos_ws/hotel \
+ghcr.io/open-rmf/rmf/rmf_demos:lyrical-rmf-latest \
+    bash -c "source /rmf_demos_ws/install/setup.bash && ros2 launch rmf_demos_gz hotel.launch.xml headless:=true"
+```
+
+```bash
+docker exec -it rmf_demos_c bash -c "source /rmf_demos_ws/install/setup.bash && bash /rmf_demos_ws/hotel/test_basic.bash"
+```
+
+#### **Verify** :white_check_mark:
+
+```bash
+[INFO] [1793176643.417945312] [task_requester]: Using Sim Time
+[INFO] [1793176643.421859544] [task_requester]: Using 'robot_task_request'
+Json msg payload: 
+{
+  "type": "robot_task_request",
+  "robot": "tinyRobot2",
+  "fleet": "tinyRobot",
+ 
+...
+
+Got response: 
+lounge
+elapsed time: 26.541723251342773
+```
