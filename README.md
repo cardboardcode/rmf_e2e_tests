@@ -19,6 +19,7 @@ Below is a tabular listing of test cases, captured in terms of individual `.bash
 | HOTEL-009 | `hotel/test_lift_interact.bash` | Lift interaction | Tasks `deliveryBot_1` to `L3_room1`, bridging multiple floors via the simulated lift. | Task completes within the 200 s timeout with successful lift engagement. |
 | HOTEL-010 | `hotel/test_patrol.bash` | Patrol task (multi-waypoint) | Issues a multi-waypoint patrol for `tinyBot_1` across `lobby` and `shop` for 2 rounds. | Patrol loop completes all 2 rounds within the 500 s timeout. |
 | OFFICE-001 | `office/test_reservation.bash` | Parking reservations | With `use_parking_reservations: True`, occupies `pantry` with `tinyRobot2`, dispatches `tinyRobot1` to the same occupied `pantry`, then frees `pantry` by moving `tinyRobot2` to `lounge`. | RMF diverts `tinyRobot1` to the nearest parking spot `tinyRobot2_charger`; once `pantry` is freed, `tinyRobot1` moves to `pantry`; final assertions: `tinyRobot1` at `pantry` and `tinyRobot2` at `lounge` all pass. |
+| OFFICE-002 | `office/test_interrupt_cancel.bash` | Task interrupt & cancellation | Dispatches a single patrol for `tinyRobot2`, verifies it is in motion at `patrol_A2`, interrupts (pauses) the in-progress task, cancels the paused task, then re-dispatches `tinyRobot2` to `patrol_C`. | Interrupt request returns `success: True` + `token`; cancel returns `success: True`; after recovery, `tinyRobot2` reaches `patrol_C` within the 500 s timeout. |
 
 ## **Test Hierarchy**
 
@@ -34,6 +35,7 @@ flowchart TD
     subgraph T2["Tier 2 — Traffic management"]
         H2["HOTEL-002<br/>test_cancellation.bash"]
         H4["HOTEL-004<br/>test_current_waitspot.bash"]
+        O2["OFFICE-002<br/>test_interrupt_cancel.bash"]
     end
 
     subgraph T3["Tier 3 — Task-type fidelity"]

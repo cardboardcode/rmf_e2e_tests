@@ -40,6 +40,32 @@ flowchart TD
 
 Each assertion uses `ros2 run rmf_demos_tasks get_robot_location ... -B <place> --timeout 500` and fails the script if the robot is not at the expected location.
 
+## test_interrupt_cancel
+
+Exercises the task interrupt (pause) and cancel flow. It dispatches a single patrol task, pauses it while the robot is in motion via an `interrupt_task_request`, cancels the paused task, and then confirms the robot remains operational by dispatching it to a new place.
+
+Sequence:
+
+1. **`tinyRobot2` → patrol `coe`** (single lap) — the `TASK_ID` (`patrol_...`) is extracted from the dispatch response.
+2. **Driving check** — `tinyRobot2` is asserted to reach waypoint `patrol_A2` on the patrol route, confirming the task is actually in motion.
+3. **Interrupt (pause)** — an `interrupt_task_request` with the `pause` label is sent via `ros2 run rmf_demos_tasks api_request`; the response must report `success: True` and include a `token`.
+4. **Cancel** — the paused task is cancelled via `ros2 run rmf_demos_tasks cancel_task`; the response must report `success: True`.
+5. **Recovery check** — `tinyRobot2` → `patrol_C` and its final location at `patrol_C` is asserted, confirming the robot still accepts and completes new tasks.
+
+```mermaid
+flowchart TD
+    A["dispatch patrol task to tinyRobot2 (coe)"] --> B["extract TASK_ID from response"]
+    B --> C["assert tinyRobot2 at patrol_A2 (driving)"]
+    C --> D["interrupt task: pause label"]
+    D --> E["assert response success: True + token"]
+    E --> F["cancel the paused task"]
+    F --> G["assert cancel response success: True"]
+    G --> H["dispatch tinyRobot2 to patrol_C"]
+    H --> I["assert tinyRobot2 at patrol_C"]
+```
+
+Location assertions use `ros2 run rmf_demos_tasks get_robot_location ... -B <place> --timeout 500`, while the interrupt and cancel assertions inspect the corresponding `ros2 run` responses for a successful `success: True` — the script fails if any check is missing.
+
 ## Prerequisites
 
 - RMF simulation with the `office` map and the `tinyRobot` fleet running (simulation must use the config in `configs/tinyRobot_config.yaml`).
@@ -50,8 +76,9 @@ Each assertion uses `ros2 run rmf_demos_tasks get_robot_location ... -B <place> 
 
 ```bash
 cd office
-chmod +x test_reservation.bash
+chmod +x test_reservation.bash test_interrupt_cancel.bash
 ./test_reservation.bash
+./test_interrupt_cancel.bash
 ```
 
-The script prints `Test failed` and exits non-zero if any location assertion times out.
+The scripts print `Test failed` (or a `FAILURE: ...` line) and exit non-zero if any assertion fails or times out.
